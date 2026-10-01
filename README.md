@@ -1,4 +1,6 @@
+
 # ReachInbox – Full-stack Email Job Scheduler
+<img width="1920" height="1080" alt="Screenshot (55)" src="https://github.com/user-attachments/assets/71912fed-b288-40a3-b0e7-598e0ec42c62" />
 
 A production-oriented take-home implementation using **TypeScript, Express, PostgreSQL, BullMQ, Redis, Elasticsearch, React, Tailwind, Google OAuth, Slack OAuth and Ethereal SMTP**.
 
@@ -24,6 +26,9 @@ Express API --------------------> PostgreSQL (users, campaigns, emails, senders,
 
 ### Scheduling
 Each recipient is persisted first and gets a BullMQ delayed job. BullMQ stores delayed jobs in Redis, so a Node process restart does not recreate the schedule. The worker loads the email row and uses an atomic DB state transition (`scheduled -> sending`) before SMTP. This makes retries/idempotency safe.
+
+<img width="1920" height="1080" alt="Screenshot (58)" src="https://github.com/user-attachments/assets/535df188-2054-41f3-8efd-4a890208e278" />
+<img width="1920" height="1080" alt="Screenshot (59)" src="https://github.com/user-attachments/assets/39d93339-58dc-4fed-8cb3-55ccac86b60e" />
 
 ### Rate limiting
 The worker uses a Redis Lua script to reserve a slot in a sender/hour bucket. The bucket key is `rate:{senderId}:{UTC-hour}`. If the configured hourly cap is reached, the job is delayed until the next UTC hour. A second Redis key tracks the last send timestamp for a sender, enforcing the configured minimum delay between sends across worker instances.
