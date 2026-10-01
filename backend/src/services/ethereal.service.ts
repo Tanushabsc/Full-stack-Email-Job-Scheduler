@@ -1,0 +1,3 @@
+import nodemailer from 'nodemailer'; import {env} from '../config/env';
+export async function createEtherealSender(){if(env.ETHEREAL_USER&&env.ETHEREAL_PASS)return {user:env.ETHEREAL_USER,pass:env.ETHEREAL_PASS};const account=await nodemailer.createTestAccount();return {user:account.user,pass:account.pass};}
+export async function sendEmail(opts:{smtpUser:string;smtpPass:string;from:string;to:string;subject:string;html:string}){const transporter=nodemailer.createTransport({host:'smtp.ethereal.email',port:587,secure:false,auth:{user:opts.smtpUser,pass:opts.smtpPass}});const info=await transporter.sendMail({from:opts.from,to:opts.to,subject:opts.subject,html:opts.html});return {messageId:info.messageId,previewUrl:nodemailer.getTestMessageUrl(info)||null};}

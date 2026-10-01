@@ -1,0 +1,7 @@
+import express from 'express';import cors from 'cors';import helmet from 'helmet';import morgan from 'morgan';import cookieSession from 'cookie-session';import passport from 'passport';
+import {env} from './config/env';import {authRouter} from './routes/auth.routes';import {emailRouter} from './routes/email.routes';import {slackRouter} from './routes/slack.routes';import {queueRouter} from './routes/queue.routes';import {ensureIndex} from './services/search.service';import {prisma} from './config/db';import {serverAdapter} from './routes/bull-board';
+const app=express();app.use(helmet());app.use(cors({origin:env.FRONTEND_URL,credentials:true}));app.use(express.json({limit:'2mb'}));app.use(morgan('dev'));app.use(cookieSession({name:'reachinbox.session',secret:env.SESSION_SECRET,httpOnly:true,sameSite:'lax',secure:false,maxAge:7*24*60*60*1000}));app.use(passport.initialize());
+app.use('/admin/queues',serverAdapter.getRouter());app.get('/health',async(_req,res)=>res.json({ok:true,time:new Date().toISOString()}));app.use('/auth',authRouter);app.use('/api/emails',emailRouter);app.use('/api/slack',slackRouter);app.use('/api/queue',queueRouter);
+app.use((err:any,_req:any,res:any,_next:any)=>{console.error(err);res.status(err?.status||400).json({message:err?.message||'Internal server error'});});
+ensureIndex().then(()=>app.listen(env.PORT,()=>console.log(`API listening on http://localhost:${env.PORT}`))).catch(console.error);
+process.on('SIGTERM',async()=>{await prisma.$disconnect();process.exit(0)});

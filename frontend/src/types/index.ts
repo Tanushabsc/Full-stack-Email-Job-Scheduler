@@ -1,0 +1,1 @@
+export type User={id:string;name:string;email:string;avatarUrl?:string|null};export type Email={id:string;recipient:string;subject:string;scheduledAt:string;sentAt?:string|null;status:'scheduled'|'sending'|'sent'|'failed';lastError?:string|null};

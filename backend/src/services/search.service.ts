@@ -1,0 +1,5 @@
+import {Client} from '@elastic/elasticsearch'; import {env} from '../config/env';
+export const es=new Client({node:env.ELASTICSEARCH_URL}); const INDEX='emails';
+export async function ensureIndex(){try{if(!(await es.indices.exists({index:INDEX}))) await es.indices.create({index:INDEX,mappings:{properties:{recipient:{type:'text'},subject:{type:'text'},status:{type:'keyword'},sentAt:{type:'date'},scheduledAt:{type:'date'},userId:{type:'keyword'}}}})}catch(e){console.warn('Elasticsearch unavailable:',(e as Error).message)}}
+export async function indexEmail(e:any){try{await es.index({index:INDEX,id:e.id,document:{id:e.id,recipient:e.recipient,subject:e.subject,status:e.status,sentAt:e.sentAt,scheduledAt:e.scheduledAt,userId:e.userId}})}catch(err){console.warn('ES index failed:',(err as Error).message)}}
+export async function searchEmails(userId:string,q:string){try{const r=await es.search({index:INDEX,query:{bool:{filter:[{term:{userId}}],must:q?[{multi_match:{query:q,fields:['recipient','subject']}}]:[{match_all:{}}]}},sort:[{scheduledAt:'desc'}]}); return r.hits.hits.map(h=>h._source)}catch{return []}}
